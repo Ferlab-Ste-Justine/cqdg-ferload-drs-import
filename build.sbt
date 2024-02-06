@@ -54,4 +54,4 @@ assembly / assemblyMergeStrategy:= {
 
 assembly / test := {}
 parallelExecution / test := false
-assembly / assemblyJarName:= "cqdg-fhir-import.jar"
+assembly / assemblyJarName:= "cqdg-ferload-drs-import.jar"

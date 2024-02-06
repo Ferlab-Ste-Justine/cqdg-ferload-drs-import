@@ -47,6 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: import-task/target/scala-2.12/import-task.jar
-          asset_name: import-task.jar
+          asset_path: cqdg-ferload-drs-import/target/scala-2.13/cqdg-ferload-drs-import.jar
+          asset_name: cqdg-ferload-drs-import.jar
           asset_content_type: application/java-archive
