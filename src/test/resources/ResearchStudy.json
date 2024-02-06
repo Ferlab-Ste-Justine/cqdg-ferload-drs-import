@@ -1,0 +1,38 @@
+{
+  "resourceType":"ResearchStudy",
+  "meta":{
+    "tag":[
+      {
+        "code":"study:ST0000001"
+      },
+      {
+        "code":"study_version:1"
+      }
+    ]
+  },
+  "identifier": [ {
+    "system": "https://fhir.cqdg.ca/fhir/ResearchStudy",
+    "value": "ST0000001"
+  }, {
+    "use": "secondary",
+    "value": "CONGMAL"
+  } ],
+  "title": "Congenital malformations",
+  "status": "completed",
+  "category": [ {
+    "coding": [ {
+      "system": "https://fhir.cqdg.ca/CodeSystem/research-domain",
+      "code": "Rare Diseases"
+    } ]
+  } ],
+  "contact": [ {
+    "telecom": [ {
+      "system": "email",
+      "value": "jacques.michaud.med@ssss.gouv.qc.ca"
+    } ]
+  } ],
+  "keyword": [ {
+    "text": "congenital malformations"
+  } ],
+  "description": "Case study on congenital malformations"
+}

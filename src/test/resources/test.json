@@ -1,0 +1,25 @@
+{
+  "id": "FIL00000001",
+  "name": "File1",
+  "size": 9007199254740991,
+  "created_time": "2012-04-23T18:25:43",
+  "updated_time": "2012-05-23T18:25:43",
+  "version": "1",
+  "mime_type": "mime_type",
+  "checksums": [
+    {
+      "checksum": "checksum",
+      "type": "type"
+    }
+  ],
+  "description": "some description",
+  "aliases": [
+    "alias1"
+  ],
+  "uris": [
+    "http://some_url/"
+  ],
+  "scopes": [
+    "scope1"
+  ]
+}

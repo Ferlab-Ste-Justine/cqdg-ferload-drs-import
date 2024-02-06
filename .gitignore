@@ -1,0 +1,6 @@
+project/target/*
+project/project/*
+.bsp
+.idea
+target
+data

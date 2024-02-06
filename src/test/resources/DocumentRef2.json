@@ -1,0 +1,47 @@
+{
+  "resourceType":"DocumentReference",
+  "meta":{
+    "tag":[
+      {
+        "code":"study:ST0000001"
+      },
+      {
+        "code":"study_version:1"
+      }
+    ]
+  },
+  "type": {
+    "coding": [ {
+      "system": "https://fhir.cqdg.ca/CodeSystem/data-type",
+      "code": "Aligned-reads",
+      "display": "Aligned Reads"
+    } ]
+  },
+  "category": [ {
+    "coding": [ {
+      "system": "https://fhir.cqdg.ca/CodeSystem/data-category",
+      "code": "Genomics",
+      "display": "Genomics"
+    } ]
+  } ],
+  "content":[
+    {
+      "attachment":{
+        "extension":[
+          {
+            "url":"https://fhir.cqdg.ca/StructureDefinition/FullSizeExtension",
+            "valueDecimal":3555072
+          }
+        ],
+        "contentType":"application/octet-stream",
+        "url":"s3://cqdg-qa-file-import/jmichaud/study1/dataset_data1/1002/S14358.cram.crai",
+        "title":"S14358.cram.crai"
+      },
+      "format":{
+        "system":"https://fhir.cqdg.ca/CodeSystem/document-format",
+        "code":"CRAI",
+        "display":"CRAI"
+      }
+    }
+  ]
+}

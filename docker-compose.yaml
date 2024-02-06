@@ -1,0 +1,76 @@
+version: "3"
+services:
+  auth:
+    image: quay.io/keycloak/keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    command:
+      - start-dev
+#      - --import-realm
+#    volumes:
+#      - /home/adrian/projects/cqdg/cqdg-fhir-keycloak-import/realm-export.json:/opt/keycloak/data/import/realm.json
+
+  fhir:
+    image: hapiproject/hapi:v5.4.1
+    ports:
+      - "8090:8080"
+    environment:
+      HAPI_FHIR_GRAPHQL_ENABLED: "true"
+      SPRING_DATASOURCE_URL: "jdbc:h2:mem:hapi"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.H2Dialect"
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.h2.Driver"
+      SPRING_DATASOURCE_USERNAME: ""
+      SPRING_DATASOURCE_PASSWORD: ""
+      BIO_AUTH_ENABLED: "false"
+      BIO_AUTH_AUTHORIZATION_ENABLED: "false"
+      BIO_AUTH_AUTHORIZATION_CLIENT_ID: ""
+      BIO_AUTH_AUTHORIZATION_CLIENT_SECRET: ""
+      BIO_AUDITS_ENABLED: "false"
+      BIO_ELASTICSEARCH_ENABLED: "false"
+      HAPI_LOGGING_INTERCEPTOR_SERVER_ENABLED: "false"
+      HAPI_LOGGING_INTERCEPTOR_CLIENT_ENABLED: "false"
+      HAPI_VALIDATE_RESPONSES_ENABLED: "false"
+      HAPI_FHIR_ALLOW_MULTIPLE_DELETE: "true"
+      HAPI_FHIR_ALLOW_CASCADING_DELETES: "true"
+      HAPI_FHIR_EXPUNGE_ENABLED: "true"
+      KEYCLOAK_ENABLED: "false"
+      HAPI_FHIR_REUSE_CACHED_SEARCH_RESULTS_MILLIS: "0"
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+
+  minio:
+    image: quay.io/minio/minio:RELEASE.2022-02-18T01-50-10Z
+    volumes:
+      - ./data:/data
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: 'minioadmin'
+      MINIO_ROOT_PASSWORD: 'minioadmin'
+      MINIO_ADDRESS: ':9000'
+      MINIO_CONSOLE_ADDRESS: ':9001'
+      MINIO_DEFAULT_BUCKETS: my-first-bucket
+    command: minio server /data
+
+#  ferload:
+#    image: ferlabcrsj/ferload:2.0.1
+#    ports:
+#      - "9090:9090"
+#    environment:
+#      AUTH_CLIENT_ID: "cqdg-resource-server"
+#      AUTH_CLIENT_SECRET: "0RXhxOKFrp9dS0122liogODbIVw7d8i0"
+#      AUTH_REALM: "CQDG"
+#      AUTH_URL: "http://localhost:8080"
+#      DRS_ID: "user1"
+#      DRS_NAME: "DRS_NAME"
+#      DRS_ORGANIZATION_NAME: "DRS_ORGANIZATION_NAME"
+#      DRS_ORGANIZATION_URL: "DRS_ORGANIZATION_URL"
+#      DRS_SELF_HOST: "DRS_SELF_HOST"
+#      FERLOAD_CLIENT_CLIENT_ID: "user1"
+#      FERLOAD_CLIENT_METHOD: "password"
+#      AWS_REGION: "us-est-1"
