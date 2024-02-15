@@ -1,0 +1,61 @@
+version: "3"
+services:
+  auth:
+    image: quay.io/keycloak/keycloak
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 9000 # 8080 will clash with keycloak
+    command:
+      - start-dev
+
+  fhir:
+    image: ferlabcrsj/cqdg-fhir-server:8b493e40cecd03546ee7f966b95f5e3a6b8de717-1698330774
+    depends_on:
+      - postgresdb
+    environment:
+      BIO_SERVICE_REQUEST_ROUTING_ENABLED: "false"
+      BIO_NANUQ_REINDEX: "hash"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQL95Dialect"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresdb:5432/hapi"
+      BIO_AUTH_SERVER_URL: "http://auth:9000"
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      HAPI_FHIR_SERVER_ADDRESS: "https://fhir.cqdg.ca/fhir/"
+      JAVA_OPTS: "-server -Xmx2048m -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -XX:+UseContainerSupport"
+      BIO_AUTH_REALM: "CQDG"
+      BIO_AUTH_ENABLED: "true"
+      BIO_AUTH_LEEWAY: "120"
+      BIO_AUTH_DISABLE_SSL_VALIDATION: "false"
+      BIO_AUTH_AUTHORIZATION_ENABLED: "false" ### False to disable/bypass permissions in keycloak
+      BIO_AUTH_AUTHORIZATION_CLIENT_SECRET: "SECRET"
+      BIO_TAGGING_ENABLED: "true"
+      HAPI_FHIR_GRAPHQL_ENABLED: "true"
+      HAPI_FHIR_ALLOW_MULTIPLE_DELETE: "true"
+
+  ferload:
+    build: .
+    environment:
+      AUTH_CLIENT_ID: "cqdg-resource-server"
+      AUTH_CLIENT_SECRET: "SECRET"
+      AUTH_REALM: "CQDG"
+      AUTH_URL: "http://auth:9000"
+      DRS_ID: "user1"
+      DRS_NAME: "DRS_NAME"
+      DRS_ORGANIZATION_NAME: "DRS_ORGANIZATION_NAME"
+      DRS_ORGANIZATION_URL: "DRS_ORGANIZATION_URL"
+      DRS_SELF_HOST: "DRS_SELF_HOST"
+      FERLOAD_CLIENT_CLIENT_ID: "user1"
+      FERLOAD_CLIENT_METHOD: "password"
+      AWS_REGION: "us-est-1"
+
+  postgresdb:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=hapi
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+
+#  psql -h postgresdb -p 5432 -U admin -d hapi
