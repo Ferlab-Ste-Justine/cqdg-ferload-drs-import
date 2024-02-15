@@ -18,7 +18,7 @@ class FerloadImportSpec extends FlatSpec with Matchers with BeforeAndAfterEach w
 
   val expectedOutput = Seq(
     DrsObjectSpec(),
-    DrsObjectSpec(id = "doc2", name = Some("doc2.cram"), uris = List("s3://path_to_doc2")),
+    DrsObjectSpec(id = "doc2", size = Some(3555072L), name = Some("S14358.cram.crai"), mime_type = Some("CRAI"), uris = List("s3://cqdg-qa-file-import/jmichaud/study1/dataset_data1/1002/S14358.cram.crai")),
   )
 
   override val containerDef =

@@ -5,16 +5,16 @@ import org.keycloak.representations.idm.authorization.ResourceRepresentation
 import scala.jdk.CollectionConverters._
 
 case class DrsObjectSpec(
-                      id: String = "doc1",
-                      name: Option[String] = Some("doc1.cram"),
-                      size: Option[Long] = Some(10),
-                      version: Option[String] = Some("2"),
-                      mime_type: Option[String] = Some("CRAM"),
-                      checksums: Option[List[Checksum]] = None,
-                      description: Option[String] = None,
-                      aliases: Option[List[String]] = None,
-                      uris: List[String] = List("s3://path_to_doc1"),
-                      scopes: Option[List[String]] = None
+                          id: String = "doc1",
+                          name: Option[String] = Some("S14018.cram"),
+                          size: Option[Long] = Some(35550724621L),
+                          version: Option[String] = Some("2"),
+                          mime_type: Option[String] = Some("CRAM"),
+                          checksums: Option[List[Checksum]] = None,
+                          description: Option[String] = None,
+                          aliases: Option[List[String]] = None,
+                          uris: List[String] = List("s3://cqdg-qa-file-import/jmichaud/study1/dataset_data2/1001/S14018.cram"),
+                          scopes: Option[List[String]] = None
                     ){}
 
 case class Checksum (

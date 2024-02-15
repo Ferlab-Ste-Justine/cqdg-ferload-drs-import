@@ -1,12 +1,13 @@
 package bio.ferlab.cqdg.ferload.clients
 
-import bio.ferlab.cqdg.ferload.fhir.FhirUtils.Constants.{DOCUMENT_FORMAT_CS, FULL_SIZE_SD}
 import ca.uhn.fhir.context.{FhirContext, PerformanceOptionsEnum}
+import ca.uhn.fhir.parser.IParser
 import ca.uhn.fhir.rest.client.api.{IGenericClient, ServerValidationModeEnum}
-import org.hl7.fhir.r4.model.DocumentReference.DocumentReferenceContentComponent
+import org.apache.commons.io.FileUtils
 import org.hl7.fhir.r4.model._
 
-import scala.jdk.CollectionConverters._
+import java.io.File
+import java.nio.charset.StandardCharsets
 
 object FhirClientTest{
   def init()(implicit fhirClient: IGenericClient): Unit = {
@@ -28,54 +29,23 @@ object FhirClientTest{
     client
   }
 
+
+  val ctx: FhirContext = FhirContext.forR4
+  val parser: IParser = ctx.newJsonParser
+
   private def createDocumentReferences()(implicit fhirClient : IGenericClient): Unit = {
-    val documentsNumbers = Seq("doc1","doc2")
-
-    documentsNumbers.map(docNum => {
-      val document = new DocumentReference()
-
-      val studyCode = new Coding()
-      val studyVersionCode = new Coding()
-      studyCode.setCode("study:STUDY1")
-      studyVersionCode.setCode("study_version:2")
-
-      val meta = new Meta
-      meta.addTag(studyCode).addTag(studyVersionCode)
-
-      val a = new Attachment()
-      val size = new Extension(FULL_SIZE_SD, new DecimalType(10))
-      a.setUrl(s"s3://path_to_$docNum")
-      a.setTitle(s"$docNum.cram")
-      a.addExtension(size)
-
-      val format = new Coding(DOCUMENT_FORMAT_CS, "CRAM", "CRAM")
-
-      val content  = new DocumentReferenceContentComponent(a).setFormat(format)
-
-      document.setContent(Seq(content).asJava)
-
-      document.setMeta(meta)
-      document.setId(s"DocumentReference/$docNum")
-      fhirClient.update().resource(document).execute()
-    })
-
+    for (i <- Seq(1,2)){
+      val input = FileUtils.readFileToString(new File(s"src/test/resources/fhir/DocumentRef$i.json"), StandardCharsets.UTF_8)
+      val doc1: DocumentReference = parser.parseResource(classOf[DocumentReference], input)
+      doc1.setId(s"DocumentReference/doc$i")
+      fhirClient.update().resource(doc1).execute()
+    }
   }
 
   private def createStudy()(implicit fhirClient : IGenericClient): Unit = {
-    val study = new ResearchStudy()
-
-    val studyCode = new Coding()
-    val studyVersionCode = new Coding()
-    studyCode.setCode("study:STUDY1")
-    studyVersionCode.setCode("study_version:2")
-
-    val meta = new Meta
-    meta.addTag(studyCode).addTag(studyVersionCode)
-
-    study.setMeta(meta)
-    study.setId("STUDY1")
+    val input = FileUtils.readFileToString(new File(s"src/test/resources/fhir/ResearchStudy.json"), StandardCharsets.UTF_8)
+    val study: ResearchStudy = parser.parseResource(classOf[ResearchStudy], input)
     fhirClient.create().resource(study).execute()
-
   }
 
 
