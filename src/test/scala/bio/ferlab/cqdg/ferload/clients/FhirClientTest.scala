@@ -9,17 +9,23 @@ import org.hl7.fhir.r4.model._
 import scala.jdk.CollectionConverters._
 
 object FhirClientTest{
-  def init(fhirHost: String, fhirPort: Int): Unit = {
-    val fhirBaseUrl = s"http://$fhirHost:$fhirPort/fhir"
-    val fhirContext: FhirContext = FhirContext.forR4()
-    fhirContext.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING)
-    fhirContext.getRestfulClientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER)
-    
-    implicit val fhirClient: IGenericClient = fhirContext.newRestfulGenericClient(fhirBaseUrl)
+  def init()(implicit fhirClient: IGenericClient): Unit = {
 
     createDocumentReferences()
     createStudy()
 
+  }
+
+  def buildClient(fhirHost: String, fhirPort: Int, token: String): IGenericClient = {
+    val fhirBaseUrl = s"http://$fhirHost:$fhirPort/fhir"
+    val fhirContext: FhirContext = FhirContext.forR4()
+    fhirContext.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING)
+    fhirContext.getRestfulClientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER)
+
+    val hapiFhirInterceptor: AuthTokenInterceptorSpec = new AuthTokenInterceptorSpec(token)
+    val client = fhirContext.newRestfulGenericClient(fhirBaseUrl)
+    client.registerInterceptor(hapiFhirInterceptor)
+    client
   }
 
   private def createDocumentReferences()(implicit fhirClient : IGenericClient): Unit = {

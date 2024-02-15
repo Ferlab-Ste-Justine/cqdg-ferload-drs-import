@@ -10,34 +10,31 @@ services:
       - start-dev
 
   fhir:
-    image: hapiproject/hapi:v5.4.1
+    image: ferlabcrsj/cqdg-fhir-server:8b493e40cecd03546ee7f966b95f5e3a6b8de717-1698330774
+    depends_on:
+      - postgresdb
     environment:
+      BIO_SERVICE_REQUEST_ROUTING_ENABLED: "false"
+      BIO_NANUQ_REINDEX: "hash"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQL95Dialect"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresdb:5432/hapi"
+      BIO_AUTH_SERVER_URL: "http://auth:9000"
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+      SPRING_DATASOURCE_USERNAME: "admin"
+      SPRING_DATASOURCE_PASSWORD: "admin"
+      HAPI_FHIR_SERVER_ADDRESS: "https://fhir.cqdg.ca/fhir/"
+      JAVA_OPTS: "-server -Xmx2048m -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -XX:+UseContainerSupport"
+      BIO_AUTH_REALM: "CQDG"
+      BIO_AUTH_ENABLED: "true"
+      BIO_AUTH_LEEWAY: "120"
+      BIO_AUTH_DISABLE_SSL_VALIDATION: "false"
+      BIO_AUTH_AUTHORIZATION_ENABLED: "false" ### False to disable/bypass permissions in keycloak
+      BIO_AUTH_AUTHORIZATION_CLIENT_SECRET: "SECRET"
+      BIO_TAGGING_ENABLED: "true"
       HAPI_FHIR_GRAPHQL_ENABLED: "true"
-      SPRING_DATASOURCE_URL: "jdbc:h2:mem:hapi"
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.H2Dialect"
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.h2.Driver"
-      SPRING_DATASOURCE_USERNAME: ""
-      SPRING_DATASOURCE_PASSWORD: ""
-      BIO_AUTH_ENABLED: "false"
-      BIO_AUTH_AUTHORIZATION_ENABLED: "false"
-      BIO_AUTH_AUTHORIZATION_CLIENT_ID: ""
-      BIO_AUTH_AUTHORIZATION_CLIENT_SECRET: ""
-      BIO_AUDITS_ENABLED: "false"
-      BIO_ELASTICSEARCH_ENABLED: "false"
-      HAPI_LOGGING_INTERCEPTOR_SERVER_ENABLED: "false"
-      HAPI_LOGGING_INTERCEPTOR_CLIENT_ENABLED: "false"
-      HAPI_VALIDATE_RESPONSES_ENABLED: "false"
       HAPI_FHIR_ALLOW_MULTIPLE_DELETE: "true"
-      HAPI_FHIR_ALLOW_CASCADING_DELETES: "true"
-      HAPI_FHIR_EXPUNGE_ENABLED: "true"
-      KEYCLOAK_ENABLED: "false"
-      HAPI_FHIR_REUSE_CACHED_SEARCH_RESULTS_MILLIS: "0"
-      POSTGRES_DB: "hapi"
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "admin"
 
   ferload:
-#    image: ferlabcrsj/ferload:2.0.1
     build: .
     environment:
       AUTH_CLIENT_ID: "cqdg-resource-server"
@@ -53,20 +50,12 @@ services:
       FERLOAD_CLIENT_METHOD: "password"
       AWS_REGION: "us-est-1"
 
-#  curl:
-#    image: curlimages/curl
-#    ports:
-#      - "6000:6000"
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
-#    depends_on:
-#      - auth
-##    command: [ "sh","-c","sleep 15 && echo curl --header \"Content-Type:application/x-www-form-urlencoded\" --header \"Accept:application/json\" -X POST --data \"client_id=cqdg-resource-server&grant_type=client_credentials&client_secret=SECRET\" http://localhost:9000/realms/CQDG/protocol/openid-connect/token" ]
-#    command: [ "sh","-c", "while true; do sleep 1; done; echo done" ]
-#  curl:
-#    build: .
-#    ports:
-#      - "2000:2000"
-#    restart: always
-#    command: [ "sh","-c", "while true; do sleep 1; done; echo done" ]
+  postgresdb:
+    image: postgres:latest
+    restart: always
+    environment:
+      - POSTGRES_DB=hapi
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+
+#  psql -h postgresdb -p 5432 -U admin -d hapi

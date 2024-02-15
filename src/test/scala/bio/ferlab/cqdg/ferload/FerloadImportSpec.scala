@@ -3,13 +3,12 @@ package bio.ferlab.cqdg.ferload
 import bio.ferlab.cqdg.etl.clients.FerloadClient
 import bio.ferlab.cqdg.ferload.clients.{FerloadClientTest, FhirClientTest, KeycloakClientTest}
 import bio.ferlab.cqdg.ferload.models.DrsObjectSpec
-import bio.ferlab.cqdg.ferload.utils.{AUTH_PORT, FERLOAD_PORT, FHIR_PORT, REALM, RESOURCE_CLIENT, RESOURCE_CLIENT_SECRET}
-import ca.uhn.fhir.context.{FhirContext, PerformanceOptionsEnum}
-import ca.uhn.fhir.rest.client.api.{IGenericClient, ServerValidationModeEnum}
+import bio.ferlab.cqdg.ferload.utils.Utils.fetchToken
+import bio.ferlab.cqdg.ferload.utils._
+import ca.uhn.fhir.rest.client.api.IGenericClient
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.dimafeng.testcontainers.{DockerComposeContainer, ExposedService}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
-import play.api.libs.json.Json
 
 import java.io.File
 
@@ -30,10 +29,10 @@ class FerloadImportSpec extends FlatSpec with Matchers with BeforeAndAfterEach w
         ExposedService("auth_1", AUTH_PORT), //todo implement wait strategy
         ExposedService("fhir_1", FHIR_PORT), //todo implement wait strategy
         ExposedService("ferload_1", FERLOAD_PORT), //todo implement wait strategy
-      ),
-      localCompose = true //TODO remove
+      )
     )
 
+  //TODO implement containers creating and provisioning in Before and stop in After
   "run" should "return no errors" in {
     withContainers { composedContainers =>
 
@@ -47,30 +46,18 @@ class FerloadImportSpec extends FlatSpec with Matchers with BeforeAndAfterEach w
       assert(fhirPort > 0)
       assert(ferloadPort > 0)
 
-      //Provision Keycloak
+      // Create and Provision Keycloak
       val keycloakClientTest = KeycloakClientTest("localhost", authPort)
-      keycloakClientTest.init()
+      keycloakClientTest.init(RESOURCE_CLIENT, FHIR_CLIENT)
 
-      //Provision FHIR
-      val fhirBaseUrl = s"http://localhost:$fhirPort/fhir"
-      val fhirContext: FhirContext = FhirContext.forR4()
-      fhirContext.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING)
-      fhirContext.getRestfulClientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER)
+      // Create and Provision FHIR
+      val tokenFHIR = fetchToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), FHIR_CLIENT, FHIR_CLIENT_SECRET)
+      implicit val fhirClient: IGenericClient = FhirClientTest.buildClient("localhost", fhirPort, tokenFHIR)
+      FhirClientTest.init()
 
-      implicit val fhirClient: IGenericClient = fhirContext.newRestfulGenericClient(fhirBaseUrl)
-
-      FhirClientTest.init("localhost", fhirPort)
-
-      val tokenResult = composedContainers.container.getContainerByServiceName("ferload_1").get()
-        .execInContainer("/bin/sh", "-c", s"curl --header 'Content-Type:application/x-www-form-urlencoded' --header 'Accept:application/json' -X POST --data 'client_id=$RESOURCE_CLIENT&grant_type=client_credentials&client_secret=$RESOURCE_CLIENT_SECRET' http://auth:$AUTH_PORT/realms/$REALM/protocol/openid-connect/token")
-        .getStdout
-
-      val tokenExtract = Json.parse(tokenResult)
-
-      val token = (tokenExtract \ "access_token").getOrElse(throw new RuntimeException("missing token")).validate[String].get
-
-
-      implicit val ferloadClient: FerloadClient = new FerloadClientTest(token, "localhost", ferloadPort)
+      // Create Ferload Client
+      val tokenFerload = fetchToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), RESOURCE_CLIENT, RESOURCE_CLIENT_SECRET)
+      implicit val ferloadClient: FerloadClient = new FerloadClientTest(tokenFerload, "localhost", ferloadPort)
 
 
       val result = FerloadImport.run(study)

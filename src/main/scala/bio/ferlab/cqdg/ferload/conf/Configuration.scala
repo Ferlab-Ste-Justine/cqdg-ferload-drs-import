@@ -17,7 +17,14 @@ case class AWSConf(
 
 case class FhirConf(url: String)
 
-case class KeycloakConf(realm: String, url: String, clientKey: String, clientSecret: String, audience: String)
+case class KeycloakConf(
+                         realm: String,
+                         url: String,
+                         readClientKey: String,
+                         readClientSecret: String,
+                         resourceClientKey: String,
+                         resourceClientSecret: String,
+                       )
 
 case class FerloadConf(url: String)
 

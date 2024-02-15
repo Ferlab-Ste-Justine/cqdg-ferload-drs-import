@@ -7,4 +7,6 @@ package object utils {
   val REALM = "CQDG"
   val RESOURCE_CLIENT = "cqdg-resource-server"
   val RESOURCE_CLIENT_SECRET = "SECRET"
+  val FHIR_CLIENT = "cqdg-acl"
+  val FHIR_CLIENT_SECRET = "SECRET"
 }

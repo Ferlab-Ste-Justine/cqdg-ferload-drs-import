@@ -17,7 +17,6 @@ class FerloadClient (token: String) extends BaseHttpClient (token) {
   def saveObject(payload: String, documentId: String): ValidationResult[String] = {
     val url = s"$ferloadEndpoint/v1/drs/ga4gh/object"
     val httpRequest = new HttpPost(url)
-//    httpRequest.addHeader("Authorization", s"Bearer $token")
     httpRequest.setEntity(new StringEntity(payload))
     try {
       val (_, status) = executeHttpRequest(httpRequest)

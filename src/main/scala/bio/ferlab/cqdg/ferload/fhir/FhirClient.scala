@@ -1,5 +1,6 @@
 package bio.ferlab.cqdg.ferload.fhir
 
+import bio.ferlab.cqdg.ferload.ClientType
 import bio.ferlab.cqdg.ferload.conf.{FhirConf, KeycloakConf}
 import ca.uhn.fhir.context.{FhirContext, PerformanceOptionsEnum}
 import ca.uhn.fhir.rest.client.api.{IGenericClient, ServerValidationModeEnum}
@@ -14,7 +15,7 @@ object FhirClient {
     fhirContext.getRestfulClientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER)
 
     val client: IGenericClient = fhirContext.newRestfulGenericClient(fhirServerUrl)
-    val hapiFhirInterceptor: AuthTokenInterceptor = new AuthTokenInterceptor(keycloakConf)
+    val hapiFhirInterceptor: AuthTokenInterceptor = new AuthTokenInterceptor(keycloakConf, ClientType.Read)
     val metaHapiFhirInterceptor: CustomHeaderInterceptor = new CustomHeaderInterceptor("X-Meta-Snapshot-Mode", "TAG,PROFILE,SECURITY_LABEL")
     client.registerInterceptor(hapiFhirInterceptor)
     client.registerInterceptor(metaHapiFhirInterceptor)
