@@ -5,7 +5,7 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HTTP_PORT: 9000 # 8080 will clash with keycloak
+      KC_HTTP_PORT: 7000 # 8080 will clash with keycloak
     command:
       - start-dev
 
@@ -18,7 +18,7 @@ services:
       BIO_NANUQ_REINDEX: "hash"
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.PostgreSQL95Dialect"
       SPRING_DATASOURCE_URL: "jdbc:postgresql://postgresdb:5432/hapi"
-      BIO_AUTH_SERVER_URL: "http://auth:9000"
+      BIO_AUTH_SERVER_URL: "http://auth:7000"
       SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
       SPRING_DATASOURCE_USERNAME: "admin"
       SPRING_DATASOURCE_PASSWORD: "admin"
@@ -40,7 +40,7 @@ services:
       AUTH_CLIENT_ID: "cqdg-resource-server"
       AUTH_CLIENT_SECRET: "SECRET"
       AUTH_REALM: "CQDG"
-      AUTH_URL: "http://auth:9000"
+      AUTH_URL: "http://auth:7000"
       DRS_ID: "user1"
       DRS_NAME: "DRS_NAME"
       DRS_ORGANIZATION_NAME: "DRS_ORGANIZATION_NAME"

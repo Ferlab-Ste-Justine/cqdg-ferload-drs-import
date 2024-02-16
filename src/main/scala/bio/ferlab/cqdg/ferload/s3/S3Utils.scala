@@ -6,9 +6,11 @@ import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.apache.ApacheHttpClient
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.model._
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import software.amazon.awssdk.services.s3.{S3Client, S3Configuration}
 
-import java.net.URI
+import java.net.{URI, URL}
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -34,6 +36,39 @@ object S3Utils {
     s3
   }
 
+  def buildS3PreSigned(conf: AWSConf): S3Presigner = {
+    val confBuilder: S3Configuration = software.amazon.awssdk.services.s3.S3Configuration.builder()
+      .pathStyleAccessEnabled(conf.pathStyleAccess)
+      .build()
+    val staticCredentialsProvider: StaticCredentialsProvider = StaticCredentialsProvider.create(
+      AwsBasicCredentials.create(conf.accessKey, conf.secretKey)
+    )
+    val endpoint = URI.create(conf.endpoint)
+
+    S3Presigner.builder()
+      .credentialsProvider(staticCredentialsProvider)
+      .endpointOverride(endpoint)
+      .region(Region.US_EAST_1)
+      .serviceConfiguration(confBuilder)
+      .build()
+  }
+
+  def generatePreSignedUrl(bucket: String, key: String)(implicit s3Presigner: S3Presigner): URL = {
+    val objectRequest = GetObjectRequest
+      .builder()
+      .key(key)
+      .bucket(bucket)
+      .build()
+
+    val objectPresignRequest = GetObjectPresignRequest
+      .builder()
+      .getObjectRequest(objectRequest)
+      .build()
+
+    s3Presigner.presignGetObject(objectPresignRequest).url()
+  }
+
+
 
   def getContent(bucket: String, key: String)(implicit s3Client: S3Client): String = {
     val objectRequest = GetObjectRequest
@@ -43,18 +78,6 @@ object S3Utils {
       .build()
 
     new String(s3Client.getObject(objectRequest).readAllBytes())
-  }
-
-  def getContentTSV(bucket: String, key: String)(implicit s3Client: S3Client): List[Array[String]] = {
-    val objectRequest = GetObjectRequest
-      .builder()
-      .key(key)
-      .bucket(bucket)
-      .build()
-
-    Source.fromInputStream(s3Client.getObject(objectRequest)).getLines.map { line =>
-      line.split("\t").map(s =>  s.replace("\"\"", "").trim)
-    }.toList
   }
 
    private def ls(bucket: String, prefix: String, maxKeys: Int = 10000)(implicit s3Client: S3Client): Seq[String] = {
@@ -73,24 +96,6 @@ object S3Utils {
       pageKeys ::: objects
   }
 
-  def getDatasets(bucket: String, prefix: String)(implicit s3Client: S3Client): List[String] = {
-    val regex = "^.*\\/(.*)\\/metadata\\.ndjson$".r
-
-    ls(bucket, prefix).flatMap (e => e match {
-      case regex(dataset) => Some(dataset)
-      case _ => None
-    }).toList
-  }
-
-  def getLinesContent(bucket: String, key: String)(implicit s3Client: S3Client): List[String] = {
-    val objectRequest = GetObjectRequest
-      .builder()
-      .key(key)
-      .bucket(bucket)
-      .build()
-
-    Source.fromInputStream(s3Client.getObject(objectRequest)).getLines.filterNot(_.isEmpty).toList
-  }
 
   def writeContent(bucket: String, key: String, content: String)(implicit s3Client: S3Client): Unit = {
     val objectRequest = PutObjectRequest.builder()

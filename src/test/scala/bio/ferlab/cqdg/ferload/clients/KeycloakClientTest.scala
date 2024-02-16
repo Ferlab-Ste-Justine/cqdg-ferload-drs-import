@@ -1,11 +1,11 @@
 package bio.ferlab.cqdg.ferload.clients
 
-import bio.ferlab.cqdg.ferload.clients.KeycloakClientTest.{createAclClient, createRealm, createResourceClient, createUser}
+import bio.ferlab.cqdg.ferload.clients.KeycloakClientTest._
 import bio.ferlab.cqdg.ferload.models.DrsObjectSpec
 import jakarta.ws.rs.NotFoundException
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
-import org.keycloak.representations.idm.authorization.{PolicyRepresentation, ResourceRepresentation, ResourceServerRepresentation, ScopeRepresentation}
+import org.keycloak.representations.idm.authorization.{ResourceRepresentation, ResourceServerRepresentation, ScopeRepresentation}
 import org.keycloak.representations.idm.{ClientRepresentation, CredentialRepresentation, RealmRepresentation, UserRepresentation}
 
 import scala.jdk.CollectionConverters._
@@ -21,10 +21,26 @@ case class KeycloakClientTest (host: String, port: Int){
     .password("admin")
     .build()
 
-  def init(resourceClient: String, fhirClient: String): Unit = {
+  def initImport(resourceClient: String, fhirClient: String): Unit = {
     createRealm("CQDG")(client)
-    createResourceClient(resourceClient, port)(client)
-    createAclClient(fhirClient, port)(client)
+
+    val clientRepresentationResource = createResourceClient(resourceClient, port)
+    client.realms.realm("CQDG").clients().create(clientRepresentationResource)
+    val clientRepresentationAcl = createAclClient(fhirClient, port)(client)
+    client.realms.realm("CQDG").clients().create(clientRepresentationAcl)
+
+    createUser("user1")(client)
+  }
+
+  def initDownload(resourceClient: String, fhirClient: String, files: Seq[DrsObjectSpec]): Unit = {
+    createRealm("CQDG")(client)
+
+    val clientRepresentationResource = createResourceClient(resourceClient, port)
+    val clientRepresentationWithResource = setResourcesToClientRepresentation(clientRepresentationResource, files)
+    client.realms.realm("CQDG").clients().create(clientRepresentationWithResource)
+    val clientRepresentationAcl = createAclClient(fhirClient, port)(client)
+    client.realms.realm("CQDG").clients().create(clientRepresentationAcl)
+
     createUser("user1")(client)
   }
 
@@ -40,7 +56,7 @@ object KeycloakClientTest{
     keycloakClient.realms.create(realmRep)
   }
 
-  private def createResourceClient(clientName: String, port: Int)(implicit keycloakClient: Keycloak): Unit = {
+  private def createResourceClient(clientName: String, port: Int) = {
     val clientRepresentation = new ClientRepresentation()
 
     clientRepresentation.setId(clientName)
@@ -48,27 +64,16 @@ object KeycloakClientTest{
     clientRepresentation.setRootUrl(s"http://localhost:$port")
 
     clientRepresentation.setEnabled(true)
-    clientRepresentation.setAttributes(
-      Map(
-        "backchannel.logout.revoke.offline.tokens" -> "false",
-        "backchannel.logout.session.required" -> "true",
-        "backchannel.logout.url" -> "",
-        "display.on.consent.screen" -> "false",
-        "login_theme" -> "",
-        "oauth2.device.authorization.grant.enabled" -> "false",
-        "oidc.ciba.grant.enabled" -> "false",
-      ).asJava
-    )
     clientRepresentation.setServiceAccountsEnabled(true)
     clientRepresentation.setAuthorizationServicesEnabled(true)
 
     clientRepresentation.setStandardFlowEnabled(true)
     clientRepresentation.setDirectAccessGrantsEnabled(true)
 
-    keycloakClient.realms.realm("CQDG").clients().create(clientRepresentation)
+    clientRepresentation
   }
 
-  private def createAclClient(clientName: String, port: Int)(implicit keycloakClient: Keycloak): Unit = {
+  private def createAclClient(clientName: String, port: Int)(implicit keycloakClient: Keycloak) = {
     val clientRepresentation = new ClientRepresentation()
 
     clientRepresentation.setId(clientName)
@@ -76,17 +81,6 @@ object KeycloakClientTest{
     clientRepresentation.setRootUrl(s"http://localhost:$port")
 
     clientRepresentation.setEnabled(true)
-    clientRepresentation.setAttributes(
-      Map(
-        "backchannel.logout.revoke.offline.tokens" -> "false",
-        "backchannel.logout.session.required" -> "true",
-        "backchannel.logout.url" -> "",
-        "display.on.consent.screen" -> "false",
-        "login_theme" -> "",
-        "oauth2.device.authorization.grant.enabled" -> "false",
-        "oidc.ciba.grant.enabled" -> "false",
-      ).asJava
-    )
     clientRepresentation.setServiceAccountsEnabled(true)
     clientRepresentation.setAuthorizationServicesEnabled(true)
 
@@ -116,7 +110,7 @@ object KeycloakClientTest{
 
     clientRepresentation.setAuthorizationSettings(resourceServerRepresentation)
 
-    keycloakClient.realms.realm("CQDG").clients().create(clientRepresentation)
+    clientRepresentation
   }
 
   def createUser(userName: String)(implicit keycloakClient: Keycloak): Unit = {
@@ -147,6 +141,32 @@ object KeycloakClientTest{
         List.empty[DrsObjectSpec]
       case e => throw e
     }
+  }
+
+  def setResourcesToClientRepresentation(clientRepresentation: ClientRepresentation, files: Seq[DrsObjectSpec]): ClientRepresentation = {
+    val uniqueScopes = files.flatMap(f => f.scopes).flatten.toSet
+
+    val scopeRepresentationList = uniqueScopes.map(s => {
+      val scopeRepresentation = new ScopeRepresentation()
+      scopeRepresentation.setId(s)
+      scopeRepresentation.setName(s)
+      scopeRepresentation.setDisplayName(s)
+      scopeRepresentation
+    })
+
+    val resources = files.map(f => {
+      val resourceRep = new ResourceRepresentation(f.id)
+      f.name.foreach(n => resourceRep.setName(n))
+      resourceRep.setUris(f.uris.toSet.asJava)
+
+      f.scopes.foreach(scopes => resourceRep.setScopes(scopeRepresentationList.filter(s => scopes.contains(s.getName)).asJava))
+      resourceRep
+    }).toList.asJava
+
+    val resourceServerRepresentation = new ResourceServerRepresentation
+    resourceServerRepresentation.setResources(resources)
+    clientRepresentation.setAuthorizationSettings(resourceServerRepresentation)
+    clientRepresentation
   }
 
 

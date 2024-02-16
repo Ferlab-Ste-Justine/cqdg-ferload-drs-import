@@ -48,7 +48,7 @@ class FerloadImportSpec extends FlatSpec with Matchers with BeforeAndAfterEach w
 
       // Create and Provision Keycloak
       val keycloakClientTest = KeycloakClientTest("localhost", authPort)
-      keycloakClientTest.init(RESOURCE_CLIENT, FHIR_CLIENT)
+      keycloakClientTest.initImport(RESOURCE_CLIENT, FHIR_CLIENT)
 
       // Create and Provision FHIR
       val tokenFHIR = fetchToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), FHIR_CLIENT, FHIR_CLIENT_SECRET)
