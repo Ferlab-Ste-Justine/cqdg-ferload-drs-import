@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.{S3Client, S3Configuration}
 
 import java.net.{URI, URL}
+import java.time.Duration
 import scala.annotation.tailrec
 import scala.io.Source
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -62,6 +63,7 @@ object S3Utils {
 
     val objectPresignRequest = GetObjectPresignRequest
       .builder()
+      .signatureDuration(Duration.ofMinutes(5)) //FIXME env variable?
       .getObjectRequest(objectRequest)
       .build()
 

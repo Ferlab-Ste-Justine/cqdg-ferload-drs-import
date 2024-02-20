@@ -5,7 +5,7 @@ import bio.ferlab.cqdg.ferload.models.DrsObjectSpec
 import jakarta.ws.rs.NotFoundException
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
-import org.keycloak.representations.idm.authorization.{ResourceRepresentation, ResourceServerRepresentation, ScopeRepresentation}
+import org.keycloak.representations.idm.authorization._
 import org.keycloak.representations.idm.{ClientRepresentation, CredentialRepresentation, RealmRepresentation, UserRepresentation}
 
 import scala.jdk.CollectionConverters._
@@ -34,14 +34,17 @@ case class KeycloakClientTest (host: String, port: Int){
 
   def initDownload(resourceClient: String, fhirClient: String, files: Seq[DrsObjectSpec]): Unit = {
     createRealm("CQDG")(client)
+    createUser("user1")(client)
 
     val clientRepresentationResource = createResourceClient(resourceClient, port)
     val clientRepresentationWithResource = setResourcesToClientRepresentation(clientRepresentationResource, files)
-    client.realms.realm("CQDG").clients().create(clientRepresentationWithResource)
+    client.realms.realm("CQDG").clients().create(clientRepresentationWithResource) //create client
+    createPolicy("fetch", Set("user1"), "cqdg-resource-server")(client)
+    createPermission("fetch", "fetch_study1", Set("study1"), "cqdg-resource-server")(client)
     val clientRepresentationAcl = createAclClient(fhirClient, port)(client)
-    client.realms.realm("CQDG").clients().create(clientRepresentationAcl)
+    client.realms.realm("CQDG").clients().create(clientRepresentationAcl) //create client
 
-    createUser("user1")(client)
+
   }
 
 }
@@ -102,12 +105,6 @@ object KeycloakClientTest{
     resourceRepresentationDocument.setName("DocumentReference")
     resourceServerRepresentation.setResources(List(resourceRepresentationStudy, resourceRepresentationDocument).asJava)
 
-    //Create Policies
-//    val policyRepresentationAdmin = new PolicyRepresentation()
-//    policyRepresentationAdmin.setName("Is System")
-//    policyRepresentationAdmin.setType("Client")
-//    resourceServerRepresentation.setPolicies(List(policyRepresentationAdmin).asJava)
-
     clientRepresentation.setAuthorizationSettings(resourceServerRepresentation)
 
     clientRepresentation
@@ -165,9 +162,35 @@ object KeycloakClientTest{
 
     val resourceServerRepresentation = new ResourceServerRepresentation
     resourceServerRepresentation.setResources(resources)
+
     clientRepresentation.setAuthorizationSettings(resourceServerRepresentation)
     clientRepresentation
   }
 
+  def createPolicy(policyName: String, users: Set[String], client: String)(implicit keycloak: Keycloak) = {
+    val authRes = keycloak.realm("CQDG").clients().get(client).authorization()
 
-}
+    val policyRepresentation = new UserPolicyRepresentation()
+    policyRepresentation.setId(policyName)
+    policyRepresentation.setName(policyName)
+    policyRepresentation.setLogic(Logic.POSITIVE)
+    policyRepresentation.setUsers(users.asJava)
+
+    authRes.policies().user().create(policyRepresentation)
+  }
+
+  def createPermission(policyName: String, permissionName: String, scopes: Set[String], client: String)(implicit keycloak: Keycloak) = {
+    val authRes = keycloak.realm("CQDG").clients().get(client).authorization()
+
+    val scopePermissionRepresentation = new ScopePermissionRepresentation
+    scopePermissionRepresentation.setId(permissionName)
+    scopePermissionRepresentation.setName(permissionName)
+    scopePermissionRepresentation.setScopes(scopes.asJava)
+    scopePermissionRepresentation.setPolicies(Set(policyName).asJava)
+
+    authRes.permissions().scope().create(scopePermissionRepresentation)
+  }
+
+
+
+  }

@@ -56,8 +56,11 @@ object FerloadDownload extends App {
 
   }
 
-  def runNew(bucket: String, prefix: String)(implicit s3Presigner: S3Presigner, ferloadClient: FerloadClient)  = {
-    val url = S3Utils.generatePreSignedUrl(bucket, prefix)
+  def runNew(bucket: String, fileList: Seq[String])(implicit ferloadClient: FerloadClient)  = {
+
+    val response = ferloadClient.getObjects(fileList.toString(), "th") //fixme
+
+//    val url = S3Utils.generatePreSignedUrl(bucket, prefix)
 
     println("TOTOTOTO")
   }

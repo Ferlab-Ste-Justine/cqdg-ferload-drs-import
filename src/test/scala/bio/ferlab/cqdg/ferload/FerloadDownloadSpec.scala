@@ -5,12 +5,13 @@ import bio.ferlab.cqdg.ferload.clients.{FerloadClientTest, KeycloakClientTest, S
 import bio.ferlab.cqdg.ferload.conf.AWSConf
 import bio.ferlab.cqdg.ferload.models.DrsObjectSpec
 import bio.ferlab.cqdg.ferload.s3.S3Utils
-import bio.ferlab.cqdg.ferload.utils.Utils.fetchToken
+import bio.ferlab.cqdg.ferload.utils.Utils.{fetchToken, fetchUserToken}
 import bio.ferlab.cqdg.ferload.utils._
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.dimafeng.testcontainers.{DockerComposeContainer, ExposedService}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.presigner.S3Presigner
 
 import java.io.File
 
@@ -61,22 +62,16 @@ class FerloadDownloadSpec extends FlatSpec with Matchers with BeforeAndAfterEach
 
       // Create and Provision S3
       val s3ClientTest = S3ClientTest("localhost", minioPort)
-      val aswConf = AWSConf(
-        accessKey = "minioadmin",
-        secretKey = "minioadmin",
-        endpoint = s"http://localhost:$minioPort",
-        bucketName = ???,
-        pathStyleAccess = true
-      )
-      implicit val s3client: S3Client =  S3Utils.buildS3PreSigned()
       s3ClientTest.init()
 
       // Ferload
-      //fixme TOKEN need to be user token...
-      val tokenFerload = fetchToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), RESOURCE_CLIENT, RESOURCE_CLIENT_SECRET)
-      implicit val ferloadClient: FerloadClient = new FerloadClientTest(tokenFerload, "localhost", ferloadPort)
+//      val tokenFerload = fetchToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), RESOURCE_CLIENT, RESOURCE_CLIENT_SECRET)
+      val tokenUserFerload = fetchUserToken(composedContainers.container.getContainerByServiceName("ferload_1").get(), RESOURCE_CLIENT, RESOURCE_CLIENT_SECRET)
+      implicit val ferloadClient: FerloadClient = new FerloadClientTest(tokenUserFerload, "localhost", ferloadPort)
 
-      FerloadDownload.runNew("study1")
+      val filesList = Seq("S14018.cram", "S14019.cram")
+
+      FerloadDownload.runNew(FILE_BUCKET, filesList)
 
       1 shouldBe(1)
 

@@ -15,4 +15,15 @@ object Utils {
     (tokenExtract \ "access_token").getOrElse(throw new RuntimeException("missing token")).validate[String].get
   }
 
+  def fetchUserToken(container: ContainerState, client: String, secret: String): String = {
+    val tokenResult = container
+      .execInContainer("/bin/sh", "-c", s"curl -u $client:$secret  --header 'Content-Type:application/x-www-form-urlencoded' --header 'Accept:application/json' -X POST --data 'password=admin&audience=cqdg-resource-server&grant_type=password&username=user1' http://auth:$AUTH_PORT/realms/$REALM/protocol/openid-connect/token")
+      .getStdout
+
+    val tokenExtract = Json.parse(tokenResult)
+
+    (tokenExtract \ "access_token").getOrElse(throw new RuntimeException("missing token")).validate[String].get
+  }
+
+
 }

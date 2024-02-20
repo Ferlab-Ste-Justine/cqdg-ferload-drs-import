@@ -28,8 +28,22 @@ class FerloadClient (token: String) extends BaseHttpClient (token) {
     } catch {
       case e => throw e
     }
+  }
 
-
+  def getObjects(payload: String, documentId: String): ValidationResult[String] = {
+    val url = s"$ferloadEndpoint/objects/list"
+    val httpRequest = new HttpPost(url)
+    httpRequest.setEntity(new StringEntity(payload))
+    try {
+      val (_, status) = executeHttpRequest(httpRequest)
+      if (status < 300) {
+        Validated.Valid(documentId)
+      } else {
+        Invalid(documentId).toValidatedNel
+      }
+    } catch {
+      case e => throw e
+    }
   }
 
 }

@@ -11,6 +11,8 @@ services:
 
   ferload:
     build: .
+    ports:
+      - "9090:9090"
     environment:
       AUTH_CLIENT_ID: "cqdg-resource-server"
       AUTH_CLIENT_SECRET: "SECRET"
@@ -23,6 +25,10 @@ services:
       DRS_SELF_HOST: "DRS_SELF_HOST"
       FERLOAD_CLIENT_CLIENT_ID: "user1"
       FERLOAD_CLIENT_METHOD: "password"
+      AWS_ACCESS_KEY: "minioadmin"
+      AWS_SECRET_KEY: "minioadmin"
+      AWS_ENDPOINT: "http://minio:9000"
+      AWS_PATH_ACCESS_STYLE: "true"
       AWS_REGION: "us-est-1"
 
   minio:
@@ -30,8 +36,9 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9001:9001"
+#    ports:
+#      - "9001:9001"
     volumes:
       - ./data:/data
-    command: server --console-address :9001 /data
+#    command: server --console-address :9001 /data
+    command: server /data
