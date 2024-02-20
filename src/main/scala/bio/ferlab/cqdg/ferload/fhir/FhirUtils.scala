@@ -17,10 +17,13 @@ object FhirUtils {
 
   val baseFhirServer = "https://fhir.cqdg.ca"
   val versionRegex = "^study_version:(.+)$".r
+  val studyRegex = "^study:(.+)$".r
+  val datasetRegex = "^dataset:(.+)$".r
 
   object Constants {
     val FULL_SIZE_SD = s"$baseFhirServer/StructureDefinition/FullSizeExtension"
     val DOCUMENT_FORMAT_CS = s"$baseFhirServer/CodeSystem/document-format"
+    val DATASET_CS = s"$baseFhirServer/CodeSystem/cqdg-dataset-cs"
 
   }
 

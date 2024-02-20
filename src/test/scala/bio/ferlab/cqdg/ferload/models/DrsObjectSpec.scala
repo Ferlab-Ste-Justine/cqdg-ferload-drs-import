@@ -14,7 +14,7 @@ case class DrsObjectSpec(
                           description: Option[String] = None,
                           aliases: Option[List[String]] = None,
                           uris: List[String] = List("s3://cqdg-qa-file-import/jmichaud/study1/dataset_data2/1001/S14018.cram"),
-                          scopes: Option[List[String]] = None
+                          scopes: Option[List[String]] = Some(List("STUDY1_data1", "STUDY1"))
                     ){}
 
 case class Checksum (
@@ -28,6 +28,8 @@ object DrsObjectSpec{
 
     val restAttributes = resource.getAttributes
 
+    val scopes = resource.getScopes.asScala.toList.map(s => s.getName)
+
     new DrsObjectSpec(
       id = resource.getId,
       name = Option(resource.getDisplayName),
@@ -38,7 +40,7 @@ object DrsObjectSpec{
       description = Option(restAttributes.get("description")).flatMap(_.asScala.toList.headOption),
       aliases = Option(restAttributes.get("aliases")).map(_.asScala.toList),
       uris = resource.getUris.asScala.toList,
-      scopes = Option(restAttributes.get("scopes")).map(_.asScala.toList)
+      scopes = Option(scopes)
     )
   }
 }

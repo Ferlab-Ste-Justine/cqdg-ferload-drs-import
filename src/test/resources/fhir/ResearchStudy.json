@@ -10,6 +10,34 @@
       }
     ]
   },
+  "extension":[
+    {
+      "url":"https://fhir.cqdg.ca/StructureDefinition/dataset",
+      "extension":[
+        {
+          "url":"name",
+          "valueString":"data1"
+        },
+        {
+          "url":"description",
+          "valueString":"Congenital malformations description"
+        }
+      ]
+    },
+    {
+      "url":"https://fhir.cqdg.ca/StructureDefinition/dataset",
+      "extension":[
+        {
+          "url":"name",
+          "valueString":"data2"
+        },
+        {
+          "url":"description",
+          "valueString":"Fetal malformations description"
+        }
+      ]
+    }
+  ],
   "identifier": [ {
     "system": "https://fhir.cqdg.ca/fhir/ResearchStudy",
     "value": "ST0000001"

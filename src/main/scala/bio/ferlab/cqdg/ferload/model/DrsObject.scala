@@ -1,7 +1,7 @@
 package bio.ferlab.cqdg.ferload.model
 
-import bio.ferlab.cqdg.ferload.fhir.FhirUtils.Constants.{DOCUMENT_FORMAT_CS, FULL_SIZE_SD}
-import bio.ferlab.cqdg.ferload.fhir.FhirUtils.versionRegex
+import bio.ferlab.cqdg.ferload.fhir.FhirUtils.Constants.{DATASET_CS, DOCUMENT_FORMAT_CS, FULL_SIZE_SD}
+import bio.ferlab.cqdg.ferload.fhir.FhirUtils.{datasetRegex, studyRegex, versionRegex}
 import org.hl7.fhir.r4.model.{DecimalType, DocumentReference}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, Writes}
@@ -41,11 +41,26 @@ object DrsObject{
 
     val formatOpt = documentContents.map(c => c.getFormat).find(f => f.getSystem == DOCUMENT_FORMAT_CS)
 
-    val studyVersion = fhirDocument.getMeta.getTag.asScala.toList
+    val tags = fhirDocument.getMeta.getTag.asScala.toList
+
+    val studyVersion = tags
       .flatMap(someCode => versionRegex.findFirstMatchIn(someCode.getCode).map(e => e.group(1))) match {
       case h::t => Some(h)
       case _ => None
     }
+
+    //document should always reference to a study
+    val study = tags
+      .flatMap(someCode => studyRegex.findFirstMatchIn(someCode.getCode).map(e => e.group(1)))
+      .headOption
+      .getOrElse(throw new RuntimeException(s"Failed to retrieve study for this Document ${fhirDocument.getIdElement.getIdPart}"))
+
+    val dataset = tags
+      .filter(c => c.getSystem == DATASET_CS)
+      .flatMap(e => datasetRegex.findFirstMatchIn(e.getCode).map(e => e.group(1)))
+      .map(e => s"${study}_$e")
+
+    val scopes = List(study) ++ dataset
 
     val currentHistoryVersionDate = fhirDocument.getMeta.getLastUpdated.toInstant.atZone(ZoneId.systemDefault()).toLocalDateTime
 
@@ -62,7 +77,7 @@ object DrsObject{
       description = None, //FIXME TBD
       aliases = None, //FIXME TBD
       uris = attachmentOpt.map(a => a.getUrl).toList,
-      scopes = None //FIXME TBD
+      scopes = Some(scopes)
     )
   }
 
