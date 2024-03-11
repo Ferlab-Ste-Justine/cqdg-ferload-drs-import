@@ -1,0 +1,38 @@
+name: Publish SHA
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+      tags:
+        required: false
+        description: 'Publish SHA'
+
+jobs:
+  build:
+    name: Publish SHA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v11
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'sbt'
+      - name: Build Assembly
+        run: sbt clean assembly
+      - name: Publish cqdg-ferload-drs-import using commit sha and timestamp
+        id: publish-cqdg-ferload-drs-import-image
+        uses: Ferlab-Ste-Justine/action-push-image@v2
+        with:
+          username: ${{ secrets.FERLAB_DOCKER_HUB_USER }}
+          password: ${{ secrets.FERLAB_DOCKER_HUB_TOKEN }}
+          image: ferlabcrsj/cqdg-ferload-drs-import
+          tag_format: "{sha}-{timestamp}"

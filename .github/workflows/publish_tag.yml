@@ -1,4 +1,4 @@
-name: create release
+name: Create release
 
 on:
   push:
@@ -20,8 +20,8 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
+      - uses: actions/checkout@v2
+      - uses: olafurpg/setup-scala@v11
         with:
           distribution: 'corretto'
           java-version: '17'
