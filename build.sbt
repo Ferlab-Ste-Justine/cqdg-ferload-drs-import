@@ -1,7 +1,7 @@
 lazy val commonSettings = Seq(
   version := "0.1.0-SNAPSHOT",
   scalaVersion := "2.13.8",
-  name := "cqdg-fhir-import"
+  name := "cqdg-ferload-drs-import"
 )
 
 val awssdkVersion = "2.16.66"
