@@ -20,8 +20,6 @@ case class FhirConf(url: String)
 case class KeycloakConf(
                          realm: String,
                          url: String,
-                         readClientKey: String,
-                         readClientSecret: String,
                          resourceClientKey: String,
                          resourceClientSecret: String,
                        )

@@ -22,7 +22,7 @@ object FerloadImport extends App {
 
         implicit val fhirClient: IGenericClient = buildFhirClient(conf.fhir, conf.keycloak)
 
-        val authResource: Auth = new AuthTokenInterceptor(conf.keycloak, ClientType.WriteResource).auth
+        val authResource: Auth = new AuthTokenInterceptor(conf.keycloak).auth
         val token = authResource.withToken { (_, rpt) => rpt }
         implicit val ferloadClient: FerloadClient = new FerloadClient(token)
 

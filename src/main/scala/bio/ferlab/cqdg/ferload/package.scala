@@ -14,11 +14,6 @@ import java.time.{LocalDateTime, ZoneId}
 
 
 package object ferload {
-  object ClientType extends Enumeration {
-    type ClientType = Value
-    val Read, WriteResource = Value
-  }
-
   val LOGGER: Logger = LoggerFactory.getLogger(getClass)
   type ValidationResult[A] = ValidatedNel[String, A]
 
