@@ -1,5 +1,5 @@
-FROM apache/spark:3.4.2
+FROM openjdk:11
 
-COPY target/scala-2.13/cqdg-ferload-drs-import.jar /app/cqdg-ferload-drs-import.jar
+COPY target/scala-2.13/cqdg-ferload-drs-import.jar .
 
-
+ENTRYPOINT ["java", "-jar", "cqdg-ferload-drs-import.jar"]
