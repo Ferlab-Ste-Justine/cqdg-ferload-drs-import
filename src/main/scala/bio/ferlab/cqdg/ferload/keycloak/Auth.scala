@@ -17,6 +17,7 @@ class Auth(conf: KeycloakConf) {
   private val authzClient = AuthzClient.create(config)
 
   private val req = new AuthorizationRequest()
+  req.setAudience(conf.audience)
   private var expiresAt = 0L
   private var rpt = ""
   private var accessToken = ""

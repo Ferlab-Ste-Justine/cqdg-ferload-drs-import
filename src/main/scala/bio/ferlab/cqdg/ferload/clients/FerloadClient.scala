@@ -5,7 +5,7 @@ import bio.ferlab.cqdg.ferload.clients.BaseHttpClient
 import cats.data.Validated
 import cats.data.Validated.Invalid
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.http.client.methods.HttpPost
+import org.apache.http.client.methods.{HttpGet, HttpPost}
 import org.apache.http.entity.StringEntity
 
 class FerloadClient (token: String) extends BaseHttpClient (token) {

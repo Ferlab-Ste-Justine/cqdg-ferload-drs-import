@@ -22,6 +22,7 @@ case class KeycloakConf(
                          url: String,
                          resourceClientKey: String,
                          resourceClientSecret: String,
+                         audience: String
                        )
 
 case class FerloadConf(url: String)
