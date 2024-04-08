@@ -54,3 +54,11 @@ jobs:
           asset_path: target/scala-2.13/cqdg-ferload-drs-import.jar
           asset_name: cqdg-ferload-drs-import.jar
           asset_content_type: application/java-archive
+      - name: Publish cqdg-ferload-drs-import
+        id: publish-cqdg-ferload-drs-import-image
+        uses: Ferlab-Ste-Justine/action-push-image@v2
+        with:
+          username: ${{ secrets.FERLAB_DOCKER_HUB_USER }}
+          password: ${{ secrets.FERLAB_DOCKER_HUB_TOKEN }}
+          image: ferlabcrsj/cqdg-ferload-drs-import
+          tag_format: "{semver}"
