@@ -24,6 +24,7 @@ object FerloadImport extends App {
 
         val authResource: Auth = new AuthTokenInterceptor(conf.keycloak).auth
         val accessToken = authResource.withToken { (access, rpt) => access }
+        println(s"TOKEN: $accessToken")
         implicit val ferloadClient: FerloadClient = new FerloadClient(accessToken)
 
         withReport(conf.aws.bucketName, "ferload") { _ => run(study) }
