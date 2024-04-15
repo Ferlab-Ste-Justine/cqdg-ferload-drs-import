@@ -2,13 +2,14 @@ package bio.ferlab.cqdg.etl.clients
 
 import bio.ferlab.cqdg.ferload.ValidationResult
 import bio.ferlab.cqdg.ferload.clients.BaseHttpClient
+import bio.ferlab.cqdg.ferload.conf.KeycloakConf
 import cats.data.Validated
 import cats.data.Validated.Invalid
 import com.typesafe.config.{Config, ConfigFactory}
-import org.apache.http.client.methods.{HttpGet, HttpPost}
+import org.apache.http.client.methods.HttpPost
 import org.apache.http.entity.StringEntity
 
-class FerloadClient (token: String) extends BaseHttpClient (token) {
+class FerloadClient(conf: KeycloakConf) extends BaseHttpClient(conf: KeycloakConf)  {
 
 
   val ferloadConfig: Config = ConfigFactory.load.getObject("ferload").toConfig
